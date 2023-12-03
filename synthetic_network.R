@@ -55,6 +55,5 @@ uniform_detection <- synthetic_db %>%
     mutate(detected = row_number() >= detected_admission_number) %>%
     select(-detected_admission_number)
 
-
-
-
+write.csv(perfect_detection, "data/perfect_detection.csv", row.names=F)
+write.csv(uniform_detection, "data/uniform_detection.csv", row.names=F)
