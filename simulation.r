@@ -57,8 +57,8 @@ for (i in 1:iterations) {
 
     sim_patients <- sim_patients |>
         mutate(
-            infected = if_else(sID %in% possible_infected[are_infected], TRUE, infected),
-            iteration = if_else(sID %in% possible_infected[are_infected], i, iteration)
+            iteration = if_else(sID %in% possible_infected[are_infected] & !infected, i, iteration),
+            infected = if_else(sID %in% possible_infected[are_infected] & !infected, TRUE, infected)
         )
 }
 
@@ -81,3 +81,49 @@ sim_graph |>
 
 ## Detection:
 
+iterations <- iterations
+base_detection_chance <- 0.6
+
+sim_patients <- sim_patients |>
+    mutate(detected = NA, iteration_detected = NA) |>
+    mutate(
+        detected = if_else(sID == index_patient, TRUE, FALSE),
+        iteration_detected = if_else(sID == index_patient, 0, NA)
+    )
+
+for (i in 1:iterations) {
+    patients_spreading_from <- sim_patients |>
+        filter(infected, iteration == (i - 1)) |>
+        pull(sID)
+
+    # This gives me the connected nodes from the target nodes. Note the distance
+    # is always one because we want the next iteration to be connected to
+    # the previous
+    possible_detected <- distances(sim_graph, v = patients_spreading_from) == 1
+    possible_detected <- colnames(possible_detected)[colSums(possible_detected) > 0]
+
+    # Infection probability decays exponentially with the number of hops.
+    are_infected <- runif(length(possible_detected)) < base_detection_chance^i
+
+    sim_patients <- sim_patients |>
+        mutate(
+            iteration_detected = if_else(sID %in% possible_detected[are_infected] & !detected, i, iteration),
+            detected = if_else(sID %in% possible_detected[are_infected] & !detected, TRUE, detected)
+        )
+}
+
+overall_detected <- sim_patients |>
+    filter(detected) |>
+    pull(sID)
+
+sim_graph <- sim_graph |>
+    set_vertex_attr("detected", value = V(sim_graph)$name %in% overall_detected) |>
+    set_vertex_attr("iteration_detected", value = sim_patients$iteration_detected, index = sim_patients$sID)
+
+sim_graph |>
+    #    delete_vertices(V(sim_graph)$infected == FALSE) |>
+    ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+    geom_edges() +
+    geom_nodes(aes(colour = factor(iteration), shape = detected), size = 4) +
+    scale_colour_discrete_sequential(rev = FALSE, palette = "reds", na.value = "lightgrey") +
+    labs(colour = "Iteration of infection")
