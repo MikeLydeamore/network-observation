@@ -11,6 +11,8 @@ set.seed(462612)
 pm <- matrix(0.002, nrow = 10, ncol = 10)
 diag(pm) <- 0.4
 
+set.seed(462612)
+
 # Stochastic block model:
 sim_graph <- sample_sbm(200, pref.matrix = pm, block.sizes = rep(20, times = 10))
 
@@ -115,13 +117,14 @@ for (i in 1:iterations) {
     possible_detected <- colnames(possible_detected)[colSums(possible_detected) > 0]
 
     # Infection probability decays exponentially with the number of hops.
-    are_infected <- runif(length(possible_detected)) < base_detection_chance^i
+    are_detected <- runif(length(possible_detected)) < base_detection_chance^i
 
     sim_patients <- sim_patients |>
         mutate(
-            iteration_detected = if_else(sID %in% possible_detected[are_infected] & !detected, i, iteration),
-            detected = if_else(sID %in% possible_detected[are_infected] & !detected, TRUE, detected)
+            iteration_detected = if_else(sID %in% possible_detected[are_detected] & !detected, i, iteration_detected),
+            detected = if_else(sID %in% possible_detected[are_detected] & !detected, TRUE, detected)
         )
+    sim_patients |> filter(detected, is.na(iteration_detected))
 }
 
 overall_detected <- sim_patients |>
@@ -130,7 +133,9 @@ overall_detected <- sim_patients |>
 
 sim_graph <- sim_graph |>
     set_vertex_attr("detected", value = V(sim_graph)$name %in% overall_detected) |>
-    set_vertex_attr("iteration_detected", value = sim_patients$iteration_detected, index = sim_patients$sID)
+    set_vertex_attr("iteration_detected", value = sim_patients$iteration_detected, index = sim_patients$sID) |>
+    set_vertex_attr("tested", value = !is.na(sim_patients$iteration_detected)) |>
+    set_vertex_attr("index_patient", value = V(sim_graph)$name == index_patient)
 
 sim_graph |>
     #    delete_vertices(V(sim_graph)$infected == FALSE) |>
@@ -140,7 +145,28 @@ sim_graph |>
     scale_colour_discrete_sequential(rev = FALSE, palette = "reds", na.value = "lightgrey") +
     labs(colour = "Iteration of infection")
 
-sim_patients |>
-    filter(infected, detected) |>
-    select(iteration, iteration_detected)
+
+ggnetwork(sim_graph, by = "infected") |>
+    ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+        geom_edges(colour = "grey") +
+        geom_nodes(aes(fill = factor(cluster), shape = infected), size = 4, alpha = 0.6) +
+        geom_nodes(aes(colour = tested), size = 4, shape = 4, stroke = 1) +
+        # scale_colour_discrete_sequential(rev = FALSE, palette = "reds", na.value = "lightgrey") +
+        labs(colour = "Tested", fill = "Ward") +
+        scale_colour_manual(values = c("black", "red")) +
+        scale_shape_manual(values = c(21, 24)) +
+        facet_wrap(~infected)
+
+
+sim_graph |>
+    delete_vertices(V(sim_graph)$infected == FALSE) |>
+    ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+    geom_edges(colour = "grey") +
+    geom_nodes(data = function(x) { x[x$index_patient,]}, size = 10, colour = "red", alpha = 0.4) +
+    geom_nodes(aes(fill = factor(cluster), shape = infected), size = 4, alpha = 0.6) +
+    geom_nodes(aes(colour = tested), size = 4, shape = 4, stroke = 1) +
+    # scale_colour_discrete_sequential(rev = FALSE, palette = "reds", na.value = "lightgrey") +
+    labs(colour = "Tested", fill = "Ward") +
+    scale_colour_manual(values = c("black", "red")) +
+    scale_shape_manual(values = c(21, 24))
 
