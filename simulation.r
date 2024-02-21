@@ -2,6 +2,12 @@ library(igraph)
 library(ggplot2)
 library(colorspace)
 library(tidyverse)
+library(ggraph)
+library(intergraph)
+library(ggnetwork)
+
+pm <- matrix(0.002, nrow = 10, ncol = 10)
+diag(pm) <- 0.4
 
 # Stochastic block model:
 sim_graph <- sample_sbm(200, pref.matrix = pm, block.sizes = rep(20, times = 10))
