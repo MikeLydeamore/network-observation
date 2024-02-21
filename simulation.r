@@ -5,6 +5,9 @@ library(colorspace)
 # Stochastic block model:
 sim_graph <- sample_sbm(200, pref.matrix = pm, block.sizes = rep(20, times = 10))
 
+sim_graph <- sim_graph |>
+    set_vertex_attr("name", value = paste0("s", 1:200))
+
 
 # Clusters will act as our proxy for wards. Patients are more likely to be connected
 # within a cluster than between so this should suffice.
@@ -127,3 +130,7 @@ sim_graph |>
     geom_nodes(aes(colour = factor(iteration), shape = detected), size = 4) +
     scale_colour_discrete_sequential(rev = FALSE, palette = "reds", na.value = "lightgrey") +
     labs(colour = "Iteration of infection")
+
+sim_patients |>
+    filter(infected, detected) |>
+    select(iteration, iteration_detected)
