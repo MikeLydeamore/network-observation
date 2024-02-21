@@ -6,6 +6,8 @@ library(ggraph)
 library(intergraph)
 library(ggnetwork)
 
+
+set.seed(462612)
 pm <- matrix(0.002, nrow = 10, ncol = 10)
 diag(pm) <- 0.4
 
@@ -141,3 +143,4 @@ sim_graph |>
 sim_patients |>
     filter(infected, detected) |>
     select(iteration, iteration_detected)
+
