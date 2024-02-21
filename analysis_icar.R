@@ -194,7 +194,7 @@ ggplot(model_data, aes(x = popn_truth, y = estimate, colour = model,
   geom_point()+
   geom_abline()+
   geom_errorbar()+
-  facet_grid(.~data)+
+  facet_grid(model~data)+
   ylab("Ward estimate")+
   xlab("Ward truth")
 

@@ -58,7 +58,7 @@ sim_patients <- sim_patients |>
     )
 
 iterations <- 5
-baseline_chance <- 0.6
+baseline_chance <- 0.8
 for (i in 1:iterations) {
     patients_spreading_from <- sim_patients |>
         filter(infected, iteration == (i - 1)) |>
@@ -101,7 +101,7 @@ sim_graph |>
 
 iterations <- iterations
 
-base_detection_chance <- 0.8
+base_detection_chance <- 0.60
 
 sim_patients <- sim_patients |>
     mutate(detected = NA, iteration_detected = NA) |>
