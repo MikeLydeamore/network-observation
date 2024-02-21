@@ -214,3 +214,57 @@ summary(sim_ergm2)
 ggplot(sim_graph, aes(x = x, y = y, xend = xend, yend = yend)) +
     geom_edges() +
     geom_nodes(aes(colour = infected))
+
+
+ward <- sample(unique(vertex_attr(sim_graph, "cluster")), size = 1)
+
+patient_frame <- tibble(
+    sID = V(sim_graph)$name,
+    ward = membership(clusters)
+)
+
+index_patient <- patient_frame |>
+    filter(ward == ward) |>
+    sample_n(1) |>
+    pull(sID)
+
+distance <- distances(sim_graph)
+
+sim_patients <- patient_frame |>
+    mutate(infected = FALSE, iteration_infected = NA)
+
+sim_patients <- sim_patients |>
+    mutate(
+        infected = if_else(sID == index_patient, TRUE, FALSE),
+        iteration = if_else(sID == index_patient, 0, NA)
+    )
+
+iterations <- 5
+baseline_chance <- 0.8
+for (i in 1:iterations) {
+    patients_spreading_from <- sim_patients |>
+        filter(infected, iteration == (i - 1)) |>
+        pull(sID)
+    possible_infected <- distances(sim_graph, v = patients_spreading_from) == 1
+    possible_infected <- colnames(possible_infected)[colSums(possible_infected) > 0]
+
+    are_infected <- runif(length(possible_infected)) < baseline_chance^i
+
+    sim_patients <- sim_patients |>
+        mutate(
+            infected = if_else(sID %in% possible_infected[are_infected], TRUE, infected),
+            iteration = if_else(sID %in% possible_infected[are_infected], i, iteration)
+        )
+}
+
+overall_infected <- sim_patients |>
+    filter(infected) |>
+    pull(sID)
+sim_graph <- sim_graph |>
+    set_vertex_attr("infected", value = V(sim_graph)$name %in% overall_infected)
+
+sim_graph |>
+#    delete_vertices(V(sim_graph)$infected == FALSE) |>
+    ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+        geom_edges() +
+        geom_nodes(aes(colour = infected))

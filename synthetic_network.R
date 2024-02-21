@@ -1,5 +1,6 @@
 library(HospitalNetwork)
 library(lubridate)
+library(ggraph)
 
 # Generate a synthetic network
 # sID = Patient
@@ -174,3 +175,68 @@ infected_nodes <- sample(rownames(normalised), size = 50, prob = normalised[seed
 synthetic_base$igraph |>
     set_vertex_attr("infected", value = V(synthetic_base$igraph)$name %in% infected_nodes) |>
     write_rds( "data/network_spread_graph.rds")
+
+
+synthetic_db <- HospitalNetwork::create_fake_subjectDB_clustered(
+    n_subjects = 100,
+    n_facilities = 10,
+    avg_n_stays = 3,
+    n_clusters = 10
+)
+
+
+patient_edgelist <- lapply(unique(synthetic_db$fID), function(facility) {
+    facility_data <- filtered |>
+        filter(fID == facility)
+
+    subjects <- unique(facility_data$sID)
+    edges <- expand.grid(subjects, subjects) |>
+        mutate(fID = facility)
+
+    return(edges)
+}) |>
+    bind_rows() |>
+    as_tibble() |>
+    unique()
+
+patient_graph <- graph_from_edgelist(as.matrix(patient_edgelist[, 1:2]), directed = FALSE)
+
+patient_graph <- patient_graph |>
+    set_edge_attr("ward", value = patient_edgelist$fID)
+# Draw as multi-level network:
+
+multilevel <- synthetic_db |>
+    select(sID, fID) |>
+    as.matrix() |>
+    graph_from_edgelist(directed = FALSE)
+
+multilevel <- multilevel |>
+    set_vertex_attr("type",
+        value = if_else(
+            V(multilevel)$name %in% synthetic_db$sID,
+            "Patient",
+            "Ward"
+        )
+    )
+
+ggplot(multilevel, aes(x = x, y = y, xend = xend, yend = yend)) +
+    geom_edges(alpha = 0.3) +
+    geom_nodes(aes(colour = type, shape = type))
+
+
+## Pick a ward, and then a patient within it:
+
+ward <- sample(synthetic_db$fID, size = 1)
+index_patient <- synthetic_db |>
+    filter(fID == ward) |>
+    reframe(sample(sID, size = 1)) |>
+    pull()
+
+baseline_chance <- 0.8
+iterations <- 20
+
+infected_patients <- index_patient
+adj <- as_adjacency_matrix(patient_graph)
+
+max(distances(patient_graph))
+
