@@ -3,6 +3,8 @@ library(ggplot2)
 library(colorspace)
 library(tidyverse)
 
+set.seed(462612)
+
 # Stochastic block model:
 sim_graph <- sample_sbm(200, pref.matrix = pm, block.sizes = rep(20, times = 10))
 
@@ -107,12 +109,12 @@ for (i in 1:iterations) {
     possible_detected <- colnames(possible_detected)[colSums(possible_detected) > 0]
 
     # Infection probability decays exponentially with the number of hops.
-    are_infected <- runif(length(possible_detected)) < base_detection_chance^i
+    are_detected <- runif(length(possible_detected)) < base_detection_chance^i
 
     sim_patients <- sim_patients |>
         mutate(
-            iteration_detected = if_else(sID %in% possible_detected[are_infected] & !detected, i, iteration),
-            detected = if_else(sID %in% possible_detected[are_infected] & !detected, TRUE, detected)
+            iteration_detected = if_else(sID %in% possible_detected[are_detected] & !detected, i, iteration),
+            detected = if_else(sID %in% possible_detected[are_detected] & !detected, TRUE, detected)
         )
 }
 
@@ -132,6 +134,13 @@ sim_graph |>
     scale_colour_discrete_sequential(rev = FALSE, palette = "reds", na.value = "lightgrey") +
     labs(colour = "Iteration of infection")
 
-sim_patients |>
-    filter(infected, detected) |>
-    select(iteration, iteration_detected)
+
+
+sim_graph |>
+    #    delete_vertices(V(sim_graph)$infected == FALSE) |>
+    ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+    geom_edges() +
+    geom_nodes(aes(fill = factor(cluster), stroke = infected), size = 4, shape = 21) +
+    #scale_colour_discrete_sequential(rev = FALSE, palette = "reds", na.value = "lightgrey") +
+    labs(colour = "Ward")
+
