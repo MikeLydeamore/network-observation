@@ -2,6 +2,12 @@ library(igraph)
 library(ggplot2)
 library(colorspace)
 library(tidyverse)
+library(ggraph)
+library(intergraph)
+library(ggnetwork)
+
+pm <- matrix(0.002, nrow = 10, ncol = 10)
+diag(pm) <- 0.4
 
 set.seed(462612)
 
