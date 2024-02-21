@@ -208,7 +208,8 @@ ward_network <- contract(
 vertex_attr(ward_network, "name")
 
 ward_adj_strength <- as_adj(ward_network)
-ward_adj <- as.matrix(ward_adj_strength)
+ward_adj_strength <- as.matrix(ward_adj_strength)
+ward_adj <- ward_adj_strength
 diag(ward_adj) <- 0
 
 ward_adj[ward_adj > 0] <- 1
