@@ -159,12 +159,28 @@ sim_graph |>
     delete_vertices(V(sim_graph)$infected == FALSE) |>
     ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
     geom_edges(colour = "grey") +
-    geom_nodes(data = function(x) { x[x$index_patient,]}, size = 10, colour = "red", alpha = 0.4) +
+    geom_nodes(data = function(x) {
+        x[x$index_patient, ]
+    }, size = 10, colour = "red", alpha = 0.4) +
     geom_nodes(aes(fill = factor(cluster), shape = infected), size = 4, alpha = 0.6) +
     geom_nodes(aes(colour = tested), size = 4, shape = 4, stroke = 1) +
     # scale_colour_discrete_sequential(rev = FALSE, palette = "reds", na.value = "lightgrey") +
     labs(colour = "Tested", fill = "Ward") +
     scale_colour_manual(values = c("black", "red")) +
-    scale_shape_manual(values = c(21, 24))
+    scale_shape_manual(values = c(21, 24)) +
+    theme_void()
 
 
+sim_layout <- get_layout_radial(sim_patients, sim_graph)
+    
+
+ggnetwork(sim_graph, layout = as.matrix(sim_layout[, c("x", "y")])) |>
+    ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+    geom_edges(colour = "lightgrey") +
+    geom_nodes(aes(fill = factor(cluster), shape = infected), size = 4, alpha = 0.6) +
+    geom_nodes(aes(colour = tested), size = 4, shape = 4, stroke = 1) +
+    labs(colour = "Tested", fill = "Ward") +
+    scale_colour_manual(values = c("black", "red")) +
+    scale_shape_manual(values = c(21, 24)) +
+    coord_fixed() +
+    theme_void()
