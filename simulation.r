@@ -96,7 +96,7 @@ sim_graph |>
 ## Detection:
 
 iterations <- iterations
-base_detection_chance <- 0.6
+base_detection_chance <- 0.7
 
 sim_patients <- sim_patients |>
     mutate(detected = NA, iteration_detected = NA) |>
@@ -203,9 +203,10 @@ ward_network <- contract(
 vertex_attr(ward_network, "name")
 
 ward_adj_strength <- as_adj(ward_network)
-ward_adj <- ward_adj_strength
+ward_adj <- as.matrix(ward_adj_strength)
 diag(ward_adj) <- 0
 
 ward_adj[ward_adj > 0] <- 1
 
 ward_adj <- Matrix::drop0(ward_adj)
+
