@@ -41,6 +41,10 @@ index_patient <- patient_frame |>
     sample_n(1) |>
     pull(sID)
 
+index_ward <- patient_frame |>
+    filter(sID == index_patient) |>
+    pull(ward)
+
 # Our end frame will have the patient ID, whether they are infected and the iteration
 # on which they are infected.
 # Infection should radiate outward from the idnex.
@@ -49,12 +53,12 @@ sim_patients <- patient_frame |>
 
 sim_patients <- sim_patients |>
     mutate(
-        infected = if_else(sID == index_patient, TRUE, FALSE),
-        iteration = if_else(sID == index_patient, 0, NA)
+        infected = if_else(ward == index_ward, TRUE, FALSE),
+        iteration = if_else(ward == index_ward, 0, NA)
     )
 
 iterations <- 5
-baseline_chance <- 0.8
+baseline_chance <- 0.6
 for (i in 1:iterations) {
     patients_spreading_from <- sim_patients |>
         filter(infected, iteration == (i - 1)) |>
@@ -96,13 +100,13 @@ sim_graph |>
 ## Detection:
 
 iterations <- iterations
-base_detection_chance <- 0.6
+base_detection_chance <- 0.8
 
 sim_patients <- sim_patients |>
     mutate(detected = NA, iteration_detected = NA) |>
     mutate(
-        detected = if_else(sID == index_patient, TRUE, FALSE),
-        iteration_detected = if_else(sID == index_patient, 0, NA)
+        detected = if_else(ward == index_ward, TRUE, FALSE),
+        iteration_detected = if_else(ward == index_ward, 0, NA)
     )
 
 for (i in 1:iterations) {
