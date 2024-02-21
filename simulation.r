@@ -202,8 +202,6 @@ ward_network <- contract(
 
 vertex_attr(ward_network, "name")
 
-ggplot(ward_network, aes(x = x, y = y, xend = xend, yend = yend))
-
 ward_adj <- as_adj(ward_network)
 diag(ward_adj) <- 0
 
