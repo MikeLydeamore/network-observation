@@ -1,4 +1,4 @@
-source("renv/activate.R")
+#source("renv/activate.R")
 Sys.setenv(TERM_PROGRAM = "vscode")
 fpath <- file.path(Sys.getenv(
   if (.Platform$OS.type == "windows") "USERPROFILE" else "HOME"),
