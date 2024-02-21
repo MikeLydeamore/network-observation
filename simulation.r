@@ -187,3 +187,26 @@ ggnetwork(sim_graph, layout = as.matrix(sim_layout[, c("x", "y")])) |>
     scale_shape_manual(values = c(21, 24)) +
     coord_fixed() +
     theme_void()
+
+ward_network <- contract(
+    sim_graph,
+    mapping = membership(clusters),
+    vertex.attr.comb = function(x) {
+        patient_frame |>
+            filter(sID %in% x) |>
+            pull(ward) |>
+            unique()
+    }
+)
+
+
+vertex_attr(ward_network, "name")
+
+ggplot(ward_network, aes(x = x, y = y, xend = xend, yend = yend))
+
+ward_adj <- as_adj(ward_network)
+diag(ward_adj) <- 0
+
+ward_adj[ward_adj > 0] <- 1
+
+ward_adj <- Matrix::drop0(ward_adj)
