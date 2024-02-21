@@ -6,6 +6,8 @@ library(ggraph)
 library(intergraph)
 library(ggnetwork)
 
+
+set.seed(462612)
 pm <- matrix(0.002, nrow = 10, ncol = 10)
 diag(pm) <- 0.4
 
@@ -143,6 +145,7 @@ sim_graph |>
     scale_colour_discrete_sequential(rev = FALSE, palette = "reds", na.value = "lightgrey") +
     labs(colour = "Iteration of infection")
 
+
 ggnetwork(sim_graph, by = "infected") |>
     ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
         geom_edges(colour = "grey") +
@@ -184,4 +187,3 @@ ggnetwork(sim_graph, layout = as.matrix(sim_layout[, c("x", "y")])) |>
     scale_shape_manual(values = c(21, 24)) +
     coord_fixed() +
     theme_void()
-t
