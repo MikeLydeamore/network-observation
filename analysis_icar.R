@@ -40,6 +40,16 @@ fit_obs_icar <- brm(n_pos|trials(num_tested) ~ car(W, gr = ward, type = "icar"),
                data = ward_infected_obs, data2 = list(W = ward_wise_adj), 
                family = binomial())
 
+### icar with strength 
+
+fit_popn_icar_strength <- brm(n_pos|trials(num_tested) ~ car(W, gr = ward, type = "icar"),
+                     data = ward_infected, data2 = list(W = ward_adj_strength), 
+                     family = binomial())
+
+fit_obs_icar_strength <- brm(n_pos|trials(num_tested) ~ car(W, gr = ward, type = "icar"),
+                    data = ward_infected_obs, data2 = list(W = ward_adj_strength), 
+                    family = binomial())
+
 
 newdata = data.frame(ward = factor(1:10), 
                      num_tested = rep(1,10))
@@ -128,12 +138,47 @@ ward_ests_obs_icar <- janitor::clean_names(as_draws_df(ward_preds_obs_icar)) %>%
          model = "icar")%>%
   full_join(true_fulldata)
 
+#### icar model predictions with strength of prediction
+ward_preds_full_icar_strength <- posterior_linpred(fit_popn_icar_strength, newdata = newdata,
+                                          allow_new_levels = TRUE,
+                                          sample_new_levels = "gaussian",
+                                          transform = TRUE)
+
+ward_ests_full_icar_strength <- janitor::clean_names(as_draws_df(ward_preds_full_icar_strength)) %>%
+  pivot_longer(x1:x10, names_to = "ward")%>%
+  group_by(ward)%>%
+  summarise(estimate = median(value),
+            low = quantile(value, .025),
+            up = quantile(value, .975)) %>%
+  ungroup()%>%
+  mutate(data = "full",
+         model = "icar - strength")%>%
+  full_join(true_fulldata)
+
+ward_preds_obs_icar_strength <- posterior_linpred(fit_obs_icar_strength, newdata = newdata,
+                                         allow_new_levels = TRUE,
+                                         sample_new_levels = "gaussian",
+                                         transform = TRUE)
+
+ward_ests_obs_icar_strength <- janitor::clean_names(as_draws_df(ward_preds_obs_icar_strength)) %>%
+  pivot_longer(x1:x10, names_to = "ward")%>%
+  group_by(ward)%>%
+  summarise(estimate = median(value),
+            low = quantile(value, .025),
+            up = quantile(value, .975)) %>%
+  ungroup()%>%
+  mutate(data = "obs",
+         model = "icar - strength")%>%
+  full_join(true_fulldata)
+
 
 
 model_data = rbind(ward_ests_obs, 
                    ward_ests_full,
                    ward_ests_full_icar,
-                   ward_ests_obs_icar)
+                   ward_ests_obs_icar,
+                   ward_ests_full_icar_strength,
+                   ward_ests_obs_icar_strength)
 
 ggplot(model_data, aes(x = popn_truth, y = estimate, colour = observed,
                        ymin = low, ymax = up))+
