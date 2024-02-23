@@ -75,7 +75,7 @@ for (i in 1:iterations) {
     possible_infected <- colnames(possible_infected)[colSums(possible_infected) > 0]
 
     # Infection probability decays exponentially with the number of hops.
-    are_infected <- runif(length(possible_infected)) < baseline_chance^i
+    are_infected <- runif(length(possible_infected)) < baseline_chance
 
     sim_patients <- sim_patients |>
         mutate(
