@@ -51,8 +51,8 @@ fit_obs_icar_strength <- brm(n_pos|trials(num_tested) ~ car(W, gr = ward, type =
                     family = binomial())
 
 
-newdata = data.frame(ward = factor(1:10), 
-                     num_tested = rep(1,10))
+newdata = data.frame(ward = factor(1:45), 
+                     num_tested = rep(1,45))
 
 
 obs_ward <- sim_patients_obs %>%
@@ -78,7 +78,7 @@ ward_preds <- posterior_linpred(fit_popn, newdata = newdata,
 
 
 ward_ests_full <- janitor::clean_names(as_draws_df(ward_preds)) %>%
-  pivot_longer(x1:x10, names_to = "ward")%>%
+  pivot_longer(x1:x45, names_to = "ward")%>%
   group_by(ward)%>%
   summarise(estimate = median(value),
             low = quantile(value, .025),
@@ -94,7 +94,7 @@ ward_preds_obs <- posterior_linpred(fit_obs, newdata = newdata,
                                     transform = TRUE)
 
 ward_ests_obs <- janitor::clean_names(as_draws_df(ward_preds_obs)) %>%
-  pivot_longer(x1:x10, names_to = "ward")%>%
+  pivot_longer(x1:x45, names_to = "ward")%>%
   group_by(ward)%>%
   summarise(estimate = median(value),
             low = quantile(value, .025),
@@ -112,7 +112,7 @@ ward_preds_full_icar <- posterior_linpred(fit_popn_icar, newdata = newdata,
                                     transform = TRUE)
 
 ward_ests_full_icar <- janitor::clean_names(as_draws_df(ward_preds_full_icar)) %>%
-  pivot_longer(x1:x10, names_to = "ward")%>%
+  pivot_longer(x1:x45, names_to = "ward")%>%
   group_by(ward)%>%
   summarise(estimate = median(value),
             low = quantile(value, .025),
@@ -128,7 +128,7 @@ ward_preds_obs_icar <- posterior_linpred(fit_obs_icar, newdata = newdata,
                                     transform = TRUE)
 
 ward_ests_obs_icar <- janitor::clean_names(as_draws_df(ward_preds_obs_icar)) %>%
-  pivot_longer(x1:x10, names_to = "ward")%>%
+  pivot_longer(x1:x45, names_to = "ward")%>%
   group_by(ward)%>%
   summarise(estimate = median(value),
             low = quantile(value, .025),
@@ -145,7 +145,7 @@ ward_preds_full_icar_strength <- posterior_linpred(fit_popn_icar_strength, newda
                                           transform = TRUE)
 
 ward_ests_full_icar_strength <- janitor::clean_names(as_draws_df(ward_preds_full_icar_strength)) %>%
-  pivot_longer(x1:x10, names_to = "ward")%>%
+  pivot_longer(x1:x45, names_to = "ward")%>%
   group_by(ward)%>%
   summarise(estimate = median(value),
             low = quantile(value, .025),
@@ -161,7 +161,7 @@ ward_preds_obs_icar_strength <- posterior_linpred(fit_obs_icar_strength, newdata
                                          transform = TRUE)
 
 ward_ests_obs_icar_strength <- janitor::clean_names(as_draws_df(ward_preds_obs_icar_strength)) %>%
-  pivot_longer(x1:x10, names_to = "ward")%>%
+  pivot_longer(x1:x45, names_to = "ward")%>%
   group_by(ward)%>%
   summarise(estimate = median(value),
             low = quantile(value, .025),
