@@ -32,7 +32,7 @@ ward_infected_obs <- sim_patients_obs %>%
                    n_pos = c(0,0),
                    num_tested = c(0,0)))
 
-fit_popn_icar <- brm(n_pos|trials(num_tested) ~ car(W, gr = ward, type = "icar"),
+fit_popn_icar <- brm(n_pos|trials(num_tested) ~ car(W, gr = ward, type = "icar") ,
                 data = ward_infected, data2 = list(W = ward_wise_adj), 
                 family = binomial())
 
@@ -171,14 +171,22 @@ ward_ests_obs_icar_strength <- janitor::clean_names(as_draws_df(ward_preds_obs_i
          model = "icar - strength")%>%
   full_join(true_fulldata)
 
-
+disagg_obs <- sim_patients_obs %>%
+  group_by(ward)%>%
+  summarise(estimate = mean(infected))%>%
+  ungroup()%>%
+  mutate(low = NA, up = NA, data = "obs",
+         model = "raw_obs",
+         ward = factor(paste0("x",ward)))%>%
+  left_join(true_fulldata)
 
 model_data = rbind(ward_ests_obs, 
                    ward_ests_full,
                    ward_ests_full_icar,
                    ward_ests_obs_icar,
                    ward_ests_full_icar_strength,
-                   ward_ests_obs_icar_strength)
+                   ward_ests_obs_icar_strength,
+                   disagg_obs)
 
 ggplot(model_data, aes(x = popn_truth, y = estimate, colour = observed,
                        ymin = low, ymax = up))+
