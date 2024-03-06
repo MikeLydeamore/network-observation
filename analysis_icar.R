@@ -25,12 +25,18 @@ ward_infected <- sim_patients %>%
   ungroup()
 
 ward_infected_obs <- sim_patients_obs %>%
-  group_by(ward)%>%
-  summarise(n_pos = sum(infected_bin), num_tested = n())%>%
+  group_by(ward) %>%
+  summarise(n_pos = sum(infected_bin), num_tested = n()) %>%
   ungroup() %>%
-  rbind(data.frame(ward = c(3, 8),
-                   n_pos = c(0,0),
-                   num_tested = c(0,0)))
+  mutate(ward = as.numeric(ward)) %>%
+  complete(
+    ward = 1:45,
+    fill = list(n_pos = 0, num_tested = 0)
+  ) %>%
+  mutate(ward = as.factor(ward))
+  # rbind(data.frame(ward = c(3, 8),
+  #                  n_pos = c(0,0),
+  #                  num_tested = c(0,0)))
 
 fit_popn_icar <- brm(n_pos|trials(num_tested) ~ car(W, gr = ward, type = "icar") ,
                 data = ward_infected, data2 = list(W = ward_wise_adj), 

@@ -8,7 +8,7 @@ library(ggnetwork)
 
 
 set.seed(462612)
-pm <- matrix(0.002, nrow = 45, ncol = 45)
+pm <- matrix(0.00002, nrow = 45, ncol = 45)
 diag(pm) <- 0.4
 
 set.seed(462612)
@@ -57,12 +57,12 @@ initial_num_infected <- sim_patients |>
 
 sim_patients <- sim_patients |>
     mutate(
-        infected = ifelse(ward == index_ward, runif(n = initial_num_infected) < 0.03, FALSE),
+        infected = ifelse(ward == index_ward, runif(n = initial_num_infected) < 0.1, FALSE),
         iteration = if_else(infected, 0, NA)
     )
 
 iterations <- 5
-baseline_chance <- 0.1
+baseline_chance <- 0.5
 for (i in 1:iterations) {
     patients_spreading_from <- sim_patients |>
         filter(infected, iteration == (i - 1)) |>
@@ -105,7 +105,7 @@ sim_graph |>
 
 iterations <- iterations
 
-base_detection_chance <- 0.90
+base_detection_chance <- 0.8
 
 sim_patients <- sim_patients |>
     mutate(detected = NA, iteration_detected = NA) |>
@@ -208,7 +208,6 @@ ward_network <- contract(
     }
 )
 
-
 vertex_attr(ward_network, "name")
 
 ward_adj_strength <- as_adj(ward_network)
@@ -219,4 +218,7 @@ diag(ward_adj) <- 0
 ward_adj[ward_adj > 0] <- 1
 
 ward_adj <- Matrix::drop0(ward_adj)
+
+is_connected(ward_network)
+
 
